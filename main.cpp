@@ -586,7 +586,8 @@ QString standToYim(const QString& standText) {
                 QString valueStr = trimmed.mid(it.key().length()).trimmed();
                 int value = valueStr.toInt();
                 
-                QString varKey = it.key().replace(":", " Variation:");
+                QString varKey = it.key();
+varKey.replace(":", " Variation:");
                 int varValue = 0;
                 
                 for (const QString& varLine : lines) {
@@ -609,7 +610,8 @@ QString standToYim(const QString& standText) {
                 QString valueStr = trimmed.mid(it.key().length()).trimmed();
                 int value = valueStr.toInt();
                 
-                QString varKey = it.key().replace(":", " Variation:");
+                QString varKey = it.key();
+varKey.replace(":", " Variation:");
                 int varValue = -1;
                 
                 for (const QString& varLine : lines) {
