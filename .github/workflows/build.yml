@@ -1,0 +1,103 @@
+name: Build Outfit Converter Pro
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.0'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+        
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+        
+    - name: Build Application
+      run: |
+        cd build
+        cmake --build . --config Release -j4
+        
+    - name: Verify Build
+      run: |
+        dir build
+        if (Test-Path "build\OutfitConverterPro.exe") {
+          Write-Host "✓ Build successful - EXE found"
+          Get-Item "build\OutfitConverterPro.exe" | Format-List
+        } else {
+          Write-Error "✗ Build failed - EXE not found"
+          exit 1
+        }
+        
+    - name: Package with Qt DLLs
+      run: |
+        mkdir package
+        copy build\OutfitConverterPro.exe package\
+        cd package
+        windeployqt --no-translations --no-system-d3d-compiler --no-opengl-sw OutfitConverterPro.exe
+        
+    - name: Verify Package
+      run: |
+        Write-Host "Package contents:"
+        dir package
+        $fileCount = (Get-ChildItem -Path package -File).Count
+        Write-Host "Total files in package: $fileCount"
+        
+    - name: Create ZIP Archive
+      run: |
+        Compress-Archive -Path package\* -DestinationPath OutfitConverterPro-Windows.zip
+        $zipSize = (Get-Item OutfitConverterPro-Windows.zip).Length / 1MB
+        Write-Host ("ZIP file size: {0:N2} MB" -f $zipSize)
+        
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: OutfitConverterPro-Windows
+        path: OutfitConverterPro-Windows.zip
+        retention-days: 30
+        
+    - name: Create Release Info
+      run: |
+        $info = @"
+        Outfit Converter Pro v2.0
+        ==========================
+        
+        Features:
+        - Multi-format converter (Cherax, YimMenu, Lexis, Stand)
+        - Advanced outfit editor with component controls
+        - Auto-detection and manual format selection
+        - Batch conversion support
+        - Modern tabbed interface
+        
+        How to Install:
+        1. Download OutfitConverterPro-Windows.zip
+        2. Extract the ZIP file
+        3. Run OutfitConverterPro.exe
+        
+        No installation required!
+        Created by @sizrox
+        "@
+        $info | Out-File -FilePath "RELEASE_INFO.txt" -Encoding UTF8
+        
+    - name: Upload Release Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: Release-Info
+        path: RELEASE_INFO.txt
+        retention-days: 30
