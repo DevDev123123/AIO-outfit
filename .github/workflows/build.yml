@@ -38,10 +38,10 @@ jobs:
       run: |
         dir build
         if (Test-Path "build\OutfitConverterPro.exe") {
-          Write-Host "✓ Build successful - EXE found"
+          Write-Host "Build successful - EXE found"
           Get-Item "build\OutfitConverterPro.exe" | Format-List
         } else {
-          Write-Error "✗ Build failed - EXE not found"
+          Write-Error "Build failed - EXE not found"
           exit 1
         }
         
@@ -75,7 +75,7 @@ jobs:
     - name: Create Release Info
       run: |
         $info = @"
-        Outfit Converter Pro v2.0
+        Outfit Converter Pro v3.0
         ==========================
         
         Features:
